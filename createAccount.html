@@ -2,23 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>Create account</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue-pink.min.css" />
+<script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
 </head>
 <body>
+<br>
+<br>
+<br>
+<div align="center">
     <form action="/createAccount" method="post">
-      First name:<br>
-      <input type="text" name="firstname"><br>
-      Last name:<br>
-      <input type="text" name="lastname"><br>
-      Email:<br>
-      <input type="email" name="email"><br>
-      Phone number:<br>
-      <input type="text" name="phone"><br>
-      Password:<br>
-      <input type="password" name="password"><br>
-      Retype password:<br>
-      <input type="password" name="re_password"><br>
-      <div><input type="submit" value="Create Account"></div>
+	  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" name="firstname" id="firstname">
+	  <label class="mdl-textfield__label" for="firstname">First name...</label>
+	  </div><br>
+	  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" name="lastname" id="lastname">
+	  <label class="mdl-textfield__label" for="lastname">Last name...</label>
+	  </div><br>
+	  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" name="email" id="email">
+	  <label class="mdl-textfield__label" for="email">E-mail...</label>
+	  </div><br>
+	  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" name="phone" id="phone">
+	  <label class="mdl-textfield__label" for="phone">Phone...</label>
+	  </div><br>
+	  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="password" name="password" id="password">
+	  <label class="mdl-textfield__label" for="password">Password...</label>
+	  </div><br>
+	  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="password" name="re_password" id="re_password">
+	  <label class="mdl-textfield__label" for="re_password">Retype password...</label>
+	  </div><br>
+      <div><input class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" value="Create Account"></div>
     </form>
+	</div>
 </body>
 </html>

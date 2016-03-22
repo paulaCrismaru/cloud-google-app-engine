@@ -3,11 +3,10 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import ndb
 import datetime
 import cgi
-
-
+from random import randint
+from google.appengine.api import mail
 
 PHONE_NUMBER_LENGTH = 10
-
 
 class Account_DB(ndb.Model):
     """Models an individual Account entry with content and date."""
@@ -29,6 +28,16 @@ class Account_DB(ndb.Model):
         if length == 0:
             return False
         return True
+	
+    @classmethod
+    def email_validation(cls, email, code):
+        #check daca codul de pe mail e ok
+        return True
+
+    @classmethod
+    def phone_validation(cls, email, code):
+        #check daca codul de pe telefon e ok
+        return True
 
     @classmethod
     def exists_email(cls, email):
@@ -49,7 +58,6 @@ class Account_DB(ndb.Model):
         if length == 0:
             return False
         return True
-
 
 class MainPage(webapp.RequestHandler):
     def get(self):
@@ -85,9 +93,8 @@ class ViewAccounts(webapp.RequestHandler):
             #                             " Phone: " + phone +
         #                                 # " validation email: " + str(email_validation) +
         #                                 # " validation phone" + str(phone_validation) +
-                                        " Created date: " + str(date) +
+                                         " Created date: " + str(date) +
                                     "</p>")
-
 
 class CreateAccount(webapp.RequestHandler):
 
@@ -114,13 +121,19 @@ class CreateAccount(webapp.RequestHandler):
         return True
 
     def check_password(self, password, re_password):
-        if len(password) < 8:
-            self.response.out.write("<p>Password must have al least 8 characters!</p>")
-            return False
+	    # if len(password) < 8:
+         #    self.response.out.write("<p>Password must have al least 8 characters!</p>")
+         #    return False
         if password != re_password:
             self.response.out.write("<p>Password and Retype Password must be identically!</p>")
             return False
         return True
+
+    def generateCode(self):
+        return randint(1000,9999)
+
+    def send_email(self, to_addr, subject, message):
+        mail.send_mail(sender="paulacrismaru@gmail.com", to=to_addr, subject=subject, body=message)
 
     def post(self):
         first_name = cgi.escape(self.request.get("firstname"))
@@ -133,25 +146,62 @@ class CreateAccount(webapp.RequestHandler):
 
 
         if self.check_email(email) and self.check_phone(phone) and self.check_password(password,re_password):
-            #Aici ar trebui generate codurile si apoi trimis email-ul/sms-ul
-            # email_validation = randint....
-            # phone_validation = randint...
+            code_email = self.generateCode()
+            message = "Enter the following code in email code field: " + `code_email`
+            self.send_email(email, "Email Verification", message)
+            code_phone = self.generateCode()
+            message = "Enter the following code in phone code field: " + `code_phone`
+            # trimite mesaj
             account = Account_DB(parent=ndb.Key("Accounts2", "Test"),
                                  first_name=first_name,
                                  last_name=last_name,
                                  email=email,
                                  phone=phone,
                                  password=password,
-                                 email_validation="False",
-                                 phone_validation="False"
+                                 email_validation=code_email,
+                                 phone_validation="FALSE"
                                  )
             account.put()
-            self.response.out.write("<p>Account created!</p>")
+            self.redirect("/checkCode")
+            # self.response.out.write("<p>Account created!</p>")
 
     def get(self):
         html_file = open("createAccount.html", "r")
         self.response.out.write(html_file.read())
+		
+class CheckCodes(webapp.RequestHandler):
 
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        page = """\
+        <html>
+          <body>
+            <form action="/checkCodes" method="post">
+              Phone code:<br>
+              <input type="text" name="phone_code"><br>
+              Mail code:<br>
+              <input type="text" name="mail_code"><br>
+              <div><input type="submit" value="Submit codes"></div>
+            </form>
+          </body>
+        </html>
+        """
+        self.response.out.write(page)
+
+    def post(self):
+        p_code = cgi.escape(self.request.get("phone_code"))
+        e_code = cgi.escape(self.request.get("mail_code"))
+        email_validation = Account_DB.email_validation(email, e_code)
+        if not email_validation:
+            self.response.out.write("<p>Email validation failed</p>")
+            # sterge din baza de date emailul si tot
+            return False
+        phone_validation = Account_DB.phone_validation(email, p_code)
+        if not phone_validation:
+            self.response.out.write("<p>Phone validation failed</p>")
+            # sterge din baza de date emailul si tot
+            return False
+        self.response.out.write("<p>Account created!</p>")
 
 class Login(webapp.RequestHandler):
     def post(self):
@@ -163,8 +213,7 @@ class Login(webapp.RequestHandler):
             self.response.out.write("<p>Invalid username or password</p>")
 
 
-
-application = webapp.WSGIApplication([('/', MainPage), ("/login", Login), ('/createAccount', CreateAccount),("/accounts", ViewAccounts)], debug=True)
+application = webapp.WSGIApplication([('/', MainPage), ("/login", Login),('/createAccount', CreateAccount),("/accounts", ViewAccounts), ("/checkCode", CheckCodes)], debug=True)
 
 
 def main():
