@@ -15,8 +15,8 @@ class Account_DB(ndb.Model):
     email = ndb.StringProperty()
     phone = ndb.StringProperty()
     password = ndb.StringProperty()
-    email_validation = ndb.StringProperty()
-    phone_validation = ndb.StringProperty()
+    email_valid = ndb.StringProperty()
+    phone_valid = ndb.StringProperty()
     date = ndb.DateTimeProperty(auto_now_add=True)
 
     @classmethod
@@ -71,7 +71,7 @@ class MainPage(webapp.RequestHandler):
 class ViewAccounts(webapp.RequestHandler):
     def get(self):
         self.response.out.write('<html><body>')
-        ancestor_key = ndb.Key("Accounts2", "Test2")
+        ancestor_key = ndb.Key("Accounts", "Test")
         accounts = Account_DB.query()
         length = 0
         for account in accounts:
@@ -133,7 +133,7 @@ class CreateAccount(webapp.RequestHandler):
         return randint(1000,9999)
 
     def send_email(self, to_addr, subject, message):
-        mail.send_mail(sender="paulacrismaru@gmail.com", to=to_addr, subject=subject, body=message)
+        mail.send_mail(sender="acatrinei.cornel.paul@gmail.com", to=to_addr, subject=subject, body=message)
 
     def post(self):
         first_name = cgi.escape(self.request.get("firstname"))
@@ -147,23 +147,26 @@ class CreateAccount(webapp.RequestHandler):
 
         if self.check_email(email) and self.check_phone(phone) and self.check_password(password,re_password):
             code_email = self.generateCode()
-            message = "Enter the following code in email code field: " + `code_email`
-            self.send_email(email, "Email Verification", message)
+            message = "Your email code verification is: " + str(code_email)
             code_phone = self.generateCode()
-            message = "Enter the following code in phone code field: " + `code_phone`
-            # trimite mesaj
-            account = Account_DB(parent=ndb.Key("Accounts2", "Test"),
+            message = "Enter the following code in phone code field: " + str(code_phone)
+
+            account = Account_DB(parent=ndb.Key("Accounts", "Test"),
                                  first_name=first_name,
                                  last_name=last_name,
                                  email=email,
                                  phone=phone,
                                  password=password,
-                                 email_validation=code_email,
-                                 phone_validation="FALSE"
+                                 email_valid=str(code_email),
+                                 phone_valid=str(code_phone)
                                  )
             account.put()
-            self.redirect("/checkCode")
-            # self.response.out.write("<p>Account created!</p>")
+
+            self.send_email(email, "Email Verification", message)
+            # trimite mesaj
+
+            # self.redirect("/checkCode")
+            self.response.out.write("<p>Account created!</p>")
 
     def get(self):
         html_file = open("createAccount.html", "r")
@@ -208,7 +211,7 @@ class Login(webapp.RequestHandler):
         email = cgi.escape(self.request.get("email"))
         password = cgi.escape(self.request.get("password"))
         if Account_DB.login(email, password):
-            self.response.out.write("<p>Your logged in now!</p>")
+            self.response.out.write("<p>You're logged in now!</p>")
         else:
             self.response.out.write("<p>Invalid username or password</p>")
 
